@@ -2,5 +2,6 @@ Flask~=3.0.3
 Flask-Session~=0.8.0
 SQLAlchemy~=2.0.30
 Flask-Bcrypt~=1.0.1
+psycopg2~=2.9
 
 

@@ -6,7 +6,7 @@ from sqlalchemy.orm import polymorphic_union
 
 from hashing_password import hash_password, check_password
 from DB.init_db import SessionLocal, User, Category, Shorts, TShirt, Shirt, Pants, Jacket, Shoes, Accessories, Cart, \
-    CartItem, Wishlist, WishlistItem, Item
+    CartItem, Wishlist, WishlistItem, Item, Payment, Order, Delivery, OrderItem
 
 from datetime import timedelta
 
@@ -571,6 +571,66 @@ def show_all_items():
             )).filter_by(category_id=category.id).all()
             all_items.extend(items)
     return render_template('all_items.html', categories=categories, items=all_items)
+
+@app.route('/process_payment', methods=['POST'])
+@login_required
+def process_payment():
+    user_id = session['user_id']
+    amount = request.form.get('amount')
+    card_number = request.form.get('cardNumber')
+    expiry_date = request.form.get('expiryDate')
+    cvv = request.form.get('cvv')
+    address = request.form.get('address')
+    city = request.form.get('city')
+    postal_code = request.form.get('postalCode')
+
+    with SessionLocal() as db_session:
+        cart = db_session.query(Cart).filter_by(user_id=user_id).first()
+        if not cart or not cart.items:
+            flash('Your cart is empty.', 'error')
+            return redirect(url_for('show_cart'))
+
+        new_order = Order(user_id=user_id, total_price=float(amount), status='Pending')
+        db_session.add(new_order)
+        db_session.commit()
+        db_session.refresh(new_order)
+
+        # Перемещение элементов корзины в элементы заказа
+        for cart_item in cart.items:
+            order_item = OrderItem(
+                order_id=new_order.id,
+                item_id=cart_item.item_id,
+                quantity=cart_item.quantity,
+                price=cart_item.item.price * cart_item.quantity
+            )
+            db_session.add(order_item)
+            db_session.delete(cart_item)
+
+        # Создание записи о платеже
+        payment = Payment(
+            user_id=user_id,
+            order_id=new_order.id,
+            amount=float(amount),
+            method='Credit Card',
+            status='Completed'
+        )
+        db_session.add(payment)
+        new_order.status = 'Paid'
+
+        # Сохранение информации о доставке
+        delivery = Delivery(
+            order_id=new_order.id,
+            address=address,
+            city=city,
+            postal_code=postal_code
+        )
+        db_session.add(delivery)
+        db_session.commit()
+
+    flash('Payment processed successfully.', 'success')
+    return redirect(url_for('index'))
+
+
 
 @app.route('/profile')
 @login_required

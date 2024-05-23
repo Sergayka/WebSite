@@ -37,6 +37,62 @@ class User(Base):
     # Связь со списком желаемого
     wishlists = relationship("Wishlist", back_populates="user")
 
+    orders = relationship("Order", back_populates="user")
+
+
+class Payment(Base):
+    __tablename__ = 'payments'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    order_id = Column(Integer, ForeignKey('orders.id'))
+    amount = Column(Numeric, nullable=False)
+    method = Column(String, nullable=False)
+    status = Column(String, default='Pending')
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    order = relationship("Order")
+
+
+class Delivery(Base):
+    __tablename__ = 'deliveries'
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey('orders.id'))
+    address = Column(String, nullable=False)
+    city = Column(String, nullable=False)
+    postal_code = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    order = relationship("Order")
+
+
+class Order(Base):
+    __tablename__ = 'orders'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship("User", back_populates="orders")
+    total_price = Column(Numeric)
+    status = Column(String, default='Pending')
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Связь с OrderItem
+    items = relationship("OrderItem", back_populates="order")
+
+
+class OrderItem(Base):
+    __tablename__ = 'order_items'
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey('orders.id'))
+    order = relationship("Order", back_populates="items")
+    item_id = Column(Integer, ForeignKey('items.id'))
+    quantity = Column(Integer, default=1)
+    price = Column(Numeric)
+
+    item = relationship("Item")
 
 # Модель категории
 class Category(Base):
