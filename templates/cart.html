@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fefefe;
+            color: #212529;
+        }
+        .navbar {
+            background-color: #a5d8ff;
+        }
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #000000 !important;
+        }
+        .navbar-nav .nav-link {
+            color: #495057 !important;
+            font-size: 1.1em;
+            transition: color 0.3s;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #0d6efd !important;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .cart-item img {
+            max-width: 100px;
+            margin-right: 20px;
+        }
+        .cart-item-info {
+            flex-grow: 1;
+        }
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+        }
+        .cart-item-quantity button {
+            border: none;
+            background-color: #0d6efd;
+            color: white;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .cart-item-quantity button:hover {
+            background-color: #0056b3;
+        }
+        .cart-item-remove {
+            color: #dc3545;
+            cursor: pointer;
+        }
+        .cart-item-remove:hover {
+            color: #c82333;
+        }
+        .total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .pay-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            text-align: center;
+        }
+        .pay-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">Самый крутой магазин</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Главное меню</a>
+                </li>
+                {% if 'user_id' in session %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Профиль</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/wishlist">Желаемое</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart">Корзина</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Выход</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Регистрация</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Вход</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Ваша корзина</h1>
+        <div id="cart-items">
+            {% for cart_item in items %}
+            <div class="cart-item" data-item-id="{{ cart_item.item.id }}" data-category-id="{{ cart_item.category_id }}" data-item-price="{{ cart_item.item.price }}">
+                <img src="{{ cart_item.item.photo_url }}" alt="{{ cart_item.item.name }}">
+                <div class="cart-item-info">
+                    <h3>{{ cart_item.item.name }}</h3>
+                    <p>{{ cart_item.item.description }}</p>
+                    <p>Цена: {{ cart_item.item.price }} x <span class="cart-item-quantity-value">{{ cart_item.quantity }}</span></p>
+                </div>
+                <div class="cart-item-quantity">
+                    <button class="increase-quantity">+</button>
+                    <button class="decrease-quantity">-</button>
+                </div>
+                <div class="cart-item-remove">
+                    <button class="remove-item" style="border:none;background:none;color:#dc3545;"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="total">
+            <span>Итоговая сумма:</span>
+            <span id="total-sum">0</span>
+        </div>
+        <button class="pay-button">Оплатить</button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        function calculateTotal() {
+            let total = 0;
+            $('.cart-item').each(function() {
+                const price = parseFloat($(this).data('item-price'));
+                const quantity = parseInt($(this).find('.cart-item-quantity-value').text());
+                total += price * quantity;
+            });
+            $('#total-sum').text(total.toFixed(2));
+        }
+
+        $(document).ready(function() {
+            calculateTotal();
+
+            function moveToBottom(item) {
+                $('#cart-items').append(item);
+            }
+
+            $('.increase-quantity').click(function() {
+                const cartItem = $(this).closest('.cart-item');
+                const itemId = cartItem.data('item-id');
+                const categoryId = cartItem.data('category-id');
+
+                $.post('/cart/increase', { item_id: itemId, category_id: categoryId }, function(data) {
+                    if (data.quantity) {
+                        cartItem.find('.cart-item-quantity-value').text(data.quantity);
+                        calculateTotal();
+                        moveToBottom(cartItem);
+                    }
+                });
+            });
+
+            $('.decrease-quantity').click(function() {
+                const cartItem = $(this).closest('.cart-item');
+                const itemId = cartItem.data('item-id');
+                const categoryId = cartItem.data('category-id');
+
+                $.post('/cart/decrease', { item_id: itemId, category_id: categoryId }, function(data) {
+                    if (data.quantity) {
+                        cartItem.find('.cart-item-quantity-value').text(data.quantity);
+                    } else {
+                        cartItem.remove();
+                    }
+                    calculateTotal();
+                });
+            });
+
+            $('.remove-item').click(function() {
+                const cartItem = $(this).closest('.cart-item');
+                const itemId = cartItem.data('item-id');
+                const categoryId = cartItem.data('category-id');
+
+                $.post('/cart/remove', { item_id: itemId, category_id: categoryId }, function(data) {
+                    if (data.item_id) {
+                        cartItem.remove();
+                        calculateTotal();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

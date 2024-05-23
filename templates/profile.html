@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fefefe;
+            color: #212529;
+        }
+        .navbar {
+            background-color: #a5d8ff;
+        }
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #000000 !important;
+        }
+        .navbar-nav .nav-link {
+            color: #495057 !important;
+            font-size: 1.1em;
+            transition: color 0.3s;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #0d6efd !important;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+        }
+        .btn-primary {
+            display: block;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="#">Самый крутой магазин</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Главное меню</a>
+                </li>
+                {% if 'user_id' in session %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Профиль</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/wishlist">Желаемое</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart">Корзина</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Выход</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Регистрация</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Вход</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Профиль</h1>
+        <h2>Добавить новый товар</h2>
+        <form action="{{ url_for('add_item') }}" method="post">
+            <div class="form-group">
+                <label for="name">Название товара:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Описание:</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="price">Цена:</label>
+                <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="photo_url">Ссылка на фото:</label>
+                <input type="url" class="form-control" id="photo_url" name="photo_url" required>
+            </div>
+            <div class="form-group">
+                <label for="extra_info">Дополнительная информация:</label>
+                <textarea class="form-control" id="extra_info" name="extra_info" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="category_id">Категория:</label>
+                <select class="form-control" id="category_id" name="category_id" required>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Добавить товар</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
